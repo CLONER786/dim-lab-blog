@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronsRight, Menu, X, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 
 // ===================================================================================
-// PAGE COMPONENTS - We are breaking the site into "pages"
+// PAGE COMPONENTS (No changes here)
 // ===================================================================================
 
 const HomePage = () => (
@@ -13,7 +13,7 @@ const HomePage = () => (
       <div className="relative container mx-auto px-6 h-full flex flex-col justify-center items-start text-white">
         <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-4">The Art of Italian Cooking</h1>
         <p className="text-xl md:text-2xl font-light max-w-2xl">Discover authentic recipes, traditional techniques, and the passion behind Italy's most beloved dishes.</p>
-        <a href="#posts" className="mt-8 bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition-colors duration-300 text-lg">
+        <a href="/recipes" className="mt-8 bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition-colors duration-300 text-lg">
           Explore Recipes
         </a>
       </div>
@@ -24,7 +24,6 @@ const HomePage = () => (
       <div className="container mx-auto px-6">
         <h2 className="text-4xl font-bold text-center mb-12">Latest from the Kitchen</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {/* Re-using BlogPostCard logic from the main App component */}
           {blogPostsData.map((post, index) => (
             <BlogPostCard key={index} {...post} />
           ))}
@@ -35,19 +34,18 @@ const HomePage = () => (
 );
 
 const RecipesPage = () => (
-    <div className="container mx-auto px-6 py-20">
+    <div className="container mx-auto px-6 py-20 min-h-[50vh]">
         <h1 className="text-4xl font-bold mb-8">All Our Recipes</h1>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
             {blogPostsData.map((post, index) => (
                 <BlogPostCard key={index} {...post} />
             ))}
-            {/* You could add more recipe cards here */}
         </div>
     </div>
 );
 
 const AboutPage = () => (
-    <div className="container mx-auto px-6 py-20">
+    <div className="container mx-auto px-6 py-20 min-h-[50vh]">
         <h1 className="text-4xl font-bold mb-4">About Cucina Italiana</h1>
         <p className="text-lg text-gray-700 leading-relaxed max-w-3xl">
             Cucina Italiana is more than just a food blog; it's a celebration of Italian culture, family, and the simple joy of a shared meal. We believe that the best dishes are made with fresh, seasonal ingredients and a whole lot of love. Join us as we explore the rich culinary traditions from every region of Italy. From the rustic tables of Tuscany to the vibrant street food of Sicily, our goal is to bring authentic Italian cooking into your home. Buon appetito!
@@ -56,7 +54,7 @@ const AboutPage = () => (
 );
 
 const ContactPage = () => (
-    <div className="container mx-auto px-6 py-20">
+    <div className="container mx-auto px-6 py-20 min-h-[50vh]">
         <h1 className="text-4xl font-bold mb-8">Contact Us</h1>
         <form className="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md">
             <div className="mb-4">
@@ -76,9 +74,8 @@ const ContactPage = () => (
     </div>
 );
 
-// This is a "hidden" page we will block with robots.txt
 const AdminPage = () => (
-     <div className="container mx-auto px-6 py-20 text-center">
+     <div className="container mx-auto px-6 py-20 text-center min-h-[50vh]">
         <h1 className="text-4xl font-bold mb-4 text-red-600">Admin Area</h1>
         <p className="text-lg text-gray-700">This page is for internal use only and should not be indexed by search engines.</p>
     </div>
@@ -86,14 +83,20 @@ const AdminPage = () => (
 
 
 // ===================================================================================
-// SHARED COMPONENTS
+// SHARED COMPONENTS (No changes here)
 // ===================================================================================
 
-const NavLink = ({ children, onClick }) => (
-  <button onClick={onClick} className="text-gray-600 hover:text-red-600 transition-colors duration-300 font-medium">
-    {children}
-  </button>
-);
+const NavLink = ({ href, children, onClick }) => {
+    const handleClick = (event) => {
+        event.preventDefault();
+        onClick(href);
+    };
+    return (
+        <a href={href} onClick={handleClick} className="text-gray-600 hover:text-red-600 transition-colors duration-300 font-medium">
+            {children}
+        </a>
+    );
+};
 
 const BlogPostCard = ({ imageUrl, category, title, excerpt, author, date }) => (
   <div className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 ease-in-out group">
@@ -117,7 +120,6 @@ const BlogPostCard = ({ imageUrl, category, title, excerpt, author, date }) => (
   </div>
 );
 
-// We move the blog post data out here so multiple components can use it
 const blogPostsData = [
     { imageUrl: 'https://images.unsplash.com/photo-1588315029754-2dd089d39a1a?q=80&w=1974&auto=format&fit=crop', category: 'Pasta', title: 'The Perfect Carbonara', excerpt: 'Learn the authentic Roman way to make creamy, delicious Carbonara without using cream.', author: 'Chef Giovanni', date: 'Sep 22, 2025' },
     { imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop', category: 'Pizza', title: 'Mastering Neapolitan Pizza', excerpt: 'Unlock the secrets to a light, airy, and perfectly charred Neapolitan pizza crust.', author: 'Maria Rossi', date: 'Sep 18, 2025' },
@@ -125,28 +127,51 @@ const blogPostsData = [
 ];
 
 // ===================================================================================
-// MAIN APP COMPONENT
+// MAIN APP COMPONENT - This is where the routing logic is added
 // ===================================================================================
 export default function App() {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  // NEW: State to manage which page is currently displayed
-  const [currentPage, setCurrentPage] = React.useState('home');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // NEW: State now holds the current URL path, e.g., "/", "/about", "/recipes"
+  const [path, setPath] = useState(window.location.pathname);
 
-  // NEW: Function to render the correct page based on state
+  // NEW: This effect runs once to handle browser back/forward buttons
+  useEffect(() => {
+    const onLocationChange = () => {
+      setPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', onLocationChange);
+    // Cleanup function to remove the event listener
+    return () => {
+      window.removeEventListener('popstate', onLocationChange);
+    };
+  }, []);
+
+  // NEW: This function handles clicks on our NavLinks
+  const handleNavClick = (newPath) => {
+    // Update the browser's URL bar without a full page reload
+    window.history.pushState({}, '', newPath);
+    // Update our state to re-render the correct component
+    setPath(newPath);
+    // Close mobile menu if open
+    setIsMenuOpen(false);
+  };
+  
+  // NEW: This function renders the correct page based on the current URL path
   const renderPage = () => {
-    switch (currentPage) {
-      case 'home':
+    switch (path) {
+      case '/':
         return <HomePage />;
-      case 'recipes':
+      case '/recipes':
         return <RecipesPage />;
-      case 'about':
+      case '/about':
         return <AboutPage />;
-      case 'contact':
+      case '/contact':
         return <ContactPage />;
-      case 'admin':
-        return <AdminPage />; // We won't link to this in the nav
-      default:
-        return <HomePage />;
+      case '/admin': // We won't link to this, but it's routable
+        return <AdminPage />;
+      default: // A simple 404 page for any other URL
+        return <div className="text-center py-20"><h1>404: Page Not Found</h1></div>;
     }
   };
 
@@ -154,15 +179,14 @@ export default function App() {
     <div className="bg-gray-50 font-sans text-gray-800">
       <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <button onClick={() => setCurrentPage('home')} className="text-3xl font-bold text-red-600 tracking-tight">
+          <a href="/" onClick={(e) => { e.preventDefault(); handleNavClick('/'); }} className="text-3xl font-bold text-red-600 tracking-tight">
             Cucina Italiana
-          </button>
-          {/* NEW: Updated NavLinks to use onClick to change the page state */}
+          </a>
           <nav className="hidden md:flex items-center space-x-8">
-            <NavLink onClick={() => setCurrentPage('home')}>Home</NavLink>
-            <NavLink onClick={() => setCurrentPage('recipes')}>Recipes</NavLink>
-            <NavLink onClick={() => setCurrentPage('about')}>About</NavLink>
-            <NavLink onClick={() => setCurrentPage('contact')}>Contact</NavLink>
+            <NavLink href="/" onClick={handleNavClick}>Home</NavLink>
+            <NavLink href="/recipes" onClick={handleNavClick}>Recipes</NavLink>
+            <NavLink href="/about" onClick={handleNavClick}>About</NavLink>
+            <NavLink href="/contact" onClick={handleNavClick}>Contact</NavLink>
           </nav>
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden z-50">
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -171,16 +195,15 @@ export default function App() {
         {/* Mobile Menu */}
         <div className={`absolute top-0 left-0 w-full bg-white shadow-lg md:hidden transition-transform duration-300 ease-in-out ${isMenuOpen ? 'transform translate-y-0' : 'transform -translate-y-full'}`}>
             <div className="flex flex-col items-center space-y-6 py-8 mt-16">
-                <NavLink onClick={() => { setCurrentPage('home'); setIsMenuOpen(false); }}>Home</NavLink>
-                <NavLink onClick={() => { setCurrentPage('recipes'); setIsMenuOpen(false); }}>Recipes</NavLink>
-                <NavLink onClick={() => { setCurrentPage('about'); setIsMenuOpen(false); }}>About</NavLink>
-                <NavLink onClick={() => { setCurrentPage('contact'); setIsMenuOpen(false); }}>Contact</NavLink>
+                <NavLink href="/" onClick={handleNavClick}>Home</NavLink>
+                <NavLink href="/recipes" onClick={handleNavClick}>Recipes</NavLink>
+                <NavLink href="/about" onClick={handleNavClick}>About</NavLink>
+                <NavLink href="/contact" onClick={handleNavClick}>Contact</NavLink>
             </div>
         </div>
       </header>
 
       <main>
-        {/* NEW: This will now render the page component based on the state */}
         {renderPage()}
       </main>
 
